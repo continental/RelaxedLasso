@@ -1,0 +1,5 @@
+scikit-learn >= 0.23.0
+joblib
+numpy
+scipy
+pytest

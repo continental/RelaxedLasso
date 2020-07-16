@@ -1,0 +1,14 @@
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Byte-compiled / optimized / DLL files
+*__pycache__
+
+# Jupyter Notebook
+.ipynb_checkpoints
+notebooks/
+
+# IDE
+.vscode/
