@@ -170,7 +170,7 @@ def relasso_lars_path(X, y, Xy=None, Gram=None, max_iter=500, alpha_min=0,
         regularization parameter alpha parameter in the Lasso.
         Used for variable selection only in the case of Relaxed Lasso
 
-    theta_min : float, optional (default=0)
+    theta_min : float, optional (default=1)
         Factor by which the regularization applied to subset of variables
         selected by parameter alpha_min must by relaxed
 
@@ -274,7 +274,8 @@ def relasso_lars_path(X, y, Xy=None, Gram=None, max_iter=500, alpha_min=0,
                     alpha_crossing = -equation[1]/equation[0]
                     if alpha_crossing > alpha_reg_min_:
                         fast_extrapolation[i] = 0
-                        min_alphas_reg[i] = alphas[alphas >= alpha_crossing][-1]
+                        min_alphas_reg[i] = \
+                            alphas[alphas >= alpha_crossing][-1]
 
         # Initiate our 3D coefs tensor
         relasso_coefs = np.empty((nb_features, nb_alphas, nb_alphas-1))
@@ -527,8 +528,14 @@ class RelaxedLassoLars(MultiOutputMixin, RegressorMixin, LinearModel):
                 self.alphas_.append(alphas)
                 self.active_.append(active)
                 self.n_iter_.append(n_iter_)
-                self.coef_path_.append(coef_path)
                 self.coef_[k] = coef_path[:, -1, -1]
+
+                # Normalized coef_path
+                coef_path_scale = np.zeros((coef_path.shape))
+                for i in range(coef_path.shape[1]):
+                    for j in range(coef_path.shape[2]):
+                        coef_path_scale[:, i, j] = coef_path[:, i, j] / X_scale
+                self.coef_path_.append(coef_path_scale)
 
             if n_targets == 1:
                 self.alphas_, self.active_, self.coef_path_, self.coef_ = [

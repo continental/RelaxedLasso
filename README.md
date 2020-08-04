@@ -40,12 +40,12 @@ The implementation is heavily inspired and relies on [scikit-learn](http://sciki
 implementation of lasso.
 
 There are two algorithms implemented in scikit-learn to get the lasso_path:
-* least angle regression (LARS) : this is the one used in this implementation
-* coordinate ascent : not implemented
+* least angle regression (LARS) : this is the one used in the RelaxedLassoLars implementation.
+* coordinate descent : this is the one used in the RelaxedLasso implementation.
 
 For pros and cons of each algorithm, see the [lasso documentation](https://scikit-learn.org/stable/modules/linear_model.html#least-angle-regression)
 
-The reason for choosing LARS is that it produces a full piecewise linear
+Usually, the main reason for choosing LARS is that it produces a full piecewise linear
 solution path, which is particularly well suited for extrapolation of
 coefficients values when applying the 'relaxation' factor θ.
 
@@ -57,7 +57,7 @@ This choice was made to stick as closely as possible to scikit-learn
 conventions.
 
 #### Additional implementation details
-The RelaxedLassoLarsCV algorithm relies on the exploration of a grid of
+The CV algorithm relies on the exploration of a grid of
 values for α. One dimension is the α controlling the variables choice
 (alpha_var) whilst the other dimension is the value of α controlling
 the actual amount of regularization (alpha_reg).
@@ -65,7 +65,8 @@ the actual amount of regularization (alpha_reg).
 The value of θ is computed by dividing alpha_reg by alpha_var.
 
 __NB:__ We added the following condition to satisfy the requirements from
-        scikit-learn-contrib (_check_estimator_)
+        scikit-learn-contrib (_check_estimator_) for the RelaxedLassoLars
+        estimator.
 
 ```python
 # Just to pass check_non_transformer_estimators_n_iter
@@ -138,7 +139,8 @@ For more, see [examples](./examples).
 See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Contributing
-This implementation was written by [Gregory Vial](mailto:gregory.vial@continental.com) and [Flora Estermann](mailto:flora.estermann@continental.com).
+This implementation was written by [Gregory Vial](mailto:gregory.vial@continental.com)
+and [Flora Estermann](mailto:flora.estermann@continental.com).
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). 
 

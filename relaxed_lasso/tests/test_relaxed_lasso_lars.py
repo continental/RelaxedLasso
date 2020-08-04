@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LassoLars, LassoLarsCV, LinearRegression
 from sklearn.utils._testing import assert_array_almost_equal
+from sklearn.utils._testing import assert_array_equal
 from sklearn.utils._testing import assert_almost_equal
 from sklearn.model_selection import KFold
 from sklearn.datasets import make_regression
@@ -312,3 +313,19 @@ def test_no_fit_path(X, y):
         error = 1  # coef_path doesn't exist
 
     assert error == 1
+
+
+@pytest.mark.parametrize("X, y", [(X, y), (Xa, ya), (Xb, yb)])
+def test_coef_path_scaling(X, y):
+    """Test that coef_ and coef_path_ are both normalized by X_scale"""
+    relasso = RelaxedLassoLars(fit_path=True).fit(X, y)
+
+    # Multi-targets
+    if type(y[0]) == np.ndarray:
+        print('Multi')
+        for i in range(y.shape[1]):
+            assert_array_equal(relasso.coef_[i],
+                               relasso.coef_path_[i][:, -1, -1])
+    # 1-target
+    else:
+        assert_array_equal(relasso.coef_, relasso.coef_path_[:, -1, -1])
