@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/continental/RelaxedLasso.svg?branch=master)](https://travis-ci.com/continental/RelaxedLasso)
+
 # Relaxed Lasso
 
 Improved version of classical lasso regularization for linear regression, as
