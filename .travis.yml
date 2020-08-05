@@ -23,4 +23,4 @@ script:
   
 after_success:
   # TO DO: Update token for Codecov for new repository
-  - bash <(curl -s https://codecov.io/bash) -t 34c2b287-08e8-4a7e-906f-a793babd8f9c -y ./codecov.yml
+  - bash <(curl -s https://codecov.io/bash) -t 0ec62e02-7f94-4396-aaa3-ae540c796ef9 -y ./codecov.yml
