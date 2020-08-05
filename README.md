@@ -1,4 +1,8 @@
-[![Build Status](https://travis-ci.com/continental/RelaxedLasso.svg?branch=master)](https://travis-ci.com/continental/RelaxedLasso)
+[![Build Status](https://travis-ci.org/continental/RelaxedLasso.svg?branch=master)](https://travis-ci.org/continental/RelaxedLasso)
+[![Build status](https://ci.appveyor.com/api/projects/status/e89746ua2p8wpe90?svg=true)](https://ci.appveyor.com/project/Flop-py/relaxedlasso)
+[![Documentation Status](https://readthedocs.org/projects/relaxedlasso/badge/?version=latest)](https://relaxedlasso.readthedocs.io/en/latest/?badge=latest)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Generic badge](https://img.shields.io/badge/Version-1.0.0-orange.svg)](CHANGELOG.md)
 
 # Relaxed Lasso
 
