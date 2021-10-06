@@ -698,7 +698,7 @@ class RelaxedLassoLarsCV(RelaxedLassoLars):
         all the values of alpha along the path for the different folds
         Corresponds to alpha_var, i.e. alphas used for variables selection
 
-    mse_path_ : array, shape (n_folds, n_cv_alphas)
+    mse_path_ : array, shape (n_cv_alphas_reg, n_folds, n_cv_alphas_var)
         the mean square error on left-out for each fold along the path
         (alpha values given by ``cv_alphas``)
 
@@ -835,7 +835,7 @@ class RelaxedLassoLarsCV(RelaxedLassoLars):
 
         best_alpha_reg = all_alphas[i_best_alpha_reg]
         # Increment alpha_var by 1 as we skip 0 (first value in all_alphas)
-        best_alpha_var = all_alphas[i_best_alpha_var+1]
+        best_alpha_var = all_alphas[i_best_alpha_var]
         best_theta = best_alpha_reg / best_alpha_var
 
         # Store our parameters
