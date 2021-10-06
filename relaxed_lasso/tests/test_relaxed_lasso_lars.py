@@ -90,12 +90,11 @@ def test_theta_equal_1(fit_path):
     assert_array_almost_equal(lasso_prediction, relasso_prediction)
 
 
-@pytest.mark.parametrize("fit_path", [True, False])
-def test_theta_equal_0(fit_path):
+def test_theta_equal_0():
     # Validate that Relaxed Lasso with theta=0 is equivalent to OLS.
-    relasso = RelaxedLassoLars(alpha, 0, fit_path=fit_path).fit(X_train,
+    relasso = RelaxedLassoLars(alpha, 0, fit_path=True).fit(X_train,
                                                                 y_train)
-    mask = lasso.active_
+    mask = relasso.active_
     lr = LinearRegression(normalize=True).fit(X_train[:, mask], y_train)
     ols_prediction = lr.predict(X_test[:, mask])
     relasso_prediction = relasso.predict(X_test)
