@@ -146,7 +146,7 @@ For more, see [examples](./examples).
 See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Contributing
-This implementation was written by [Gregory Vial](mailto:gregory.vial@continental.com)
+This implementation was written by [Gregory Vial](mailto:greg_vial@hotmail.com)
 and [Flora Estermann](mailto:flora.estermann@continental.com).
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). 
