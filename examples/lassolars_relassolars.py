@@ -1,13 +1,13 @@
 """
 =============================================
-  RelaxedLassoCV vs Lasso RegressorCV
+  RelaxedLassoLarsCV vs LassoLars RegressorCV
 =============================================
-An example  of : class relaxed_lasso.RelaxedLassoCV
+An example  of : class relaxed_lasso.RelaxedLassoLarsCV
 """
 
 import numpy as np
-from relaxed_lasso import RelaxedLassoCV
-from sklearn.linear_model import LassoCV
+from relaxed_lasso import RelaxedLassoLarsCV
+from sklearn.linear_model import LassoLarsCV
 from sklearn.model_selection import train_test_split
 
 # Create highly colinear dataset for regression.
@@ -31,10 +31,10 @@ y = 7*X[:, 0] + \
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2,
                                                     random_state=0)
 
-relasso = RelaxedLassoCV().fit(X_train, y_train)
+relasso = RelaxedLassoLarsCV().fit(X_train, y_train)
 print(f"Relaxed lasso score on test set: {relasso.score(X_test, y_test)}")
 
-lasso = LassoCV().fit(X_train, y_train)
+lasso = LassoLarsCV().fit(X_train, y_train)
 print(f"Lasso score on test set: {lasso.score(X_test, y_test)}")
 
 print(f"""True number of predictors: 6
