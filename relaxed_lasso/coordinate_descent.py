@@ -440,7 +440,7 @@ def relasso_path(X, y, eps=1e-13, alpha_min=0,
                 sparse_X[:, mask] = 0
                 coef2 = None
                 # Set a lower limit to the alpha_reg to speed up computation
-                min_alpha_recompute = alphas[0] *.1
+                min_alpha_recompute = alphas[0] * .1
                 for j in range(i+len(alphas_reg_interp), nb_alphas):
                     # Skip computation for very small values of alpha_reg
                     if coef2 is None or alphas[j] >= min_alpha_recompute or \
