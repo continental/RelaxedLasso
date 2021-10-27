@@ -146,8 +146,9 @@ For more, see [examples](./examples).
 See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Contributing
-This implementation was written by [Gregory Vial](mailto:greg_vial@hotmail.com)
-and [Flora Estermann](mailto:flora.estermann@continental.com).
+This implementation was originally written by 
+[Gregory Vial](https://github.com/GregVial)
+and [Flora Estermann](https://github.com/FloWPs).
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). 
 
