@@ -132,9 +132,14 @@ def _relassolars_path_residues(X_train, y_train, X_test, y_test,
     nb_alphas = len(alphas)
     residues = np.empty((nb_alphas, len(X_test), nb_alphas-1))
 
-    for i in range(nb_alphas-1):
-        residues[:, :, i] = (np.dot(X_test, coefs[:, :, i])
-                             - y_test[:, np.newaxis]).T
+    y_test_ext = np.broadcast_to(y_test, (residues.shape[0],
+                                          residues.shape[2],
+                                          residues.shape[1])).swapaxes(1, 2)
+    residues = np.dot(X_test,
+                      coefs.reshape((X_test.shape[1], -1))).\
+        reshape((len(X_test),
+                 nb_alphas,
+                 nb_alphas-1)).swapaxes(0, 1) - y_test_ext
 
     return alphas, active, coefs, residues
 
@@ -220,9 +225,13 @@ def relasso_lars_path(X, y, Xy=None, Gram=None, max_iter=500, alpha_min=0,
         to True.
 
     """
+    # Ensure X is F-continuous (much faster than C-continuous in this context)
+    if X.flags["F_CONTIGUOUS"] is False:
+        X = np.asfortranarray(X)
+
     # Store a copy of X as lars_path changes order of columns even with
     # copy_X=True
-    X_copy = X.copy()
+    X_copy = X.copy(order="F")
 
     # Set minimum value of alpha for regularization
     alpha_reg_min_ = alpha_min*theta_min
@@ -304,7 +313,7 @@ def relasso_lars_path(X, y, Xy=None, Gram=None, max_iter=500, alpha_min=0,
                               i] = interpolated.T
 
                 # Compute coefs for the remaining alpha_reg
-                X_copy = X.copy()
+                X_copy = X.copy(order="F")
                 _, _, coef1 = lars_path(X_copy, y, Xy=Xy,
                                         Gram=Gram,
                                         max_iter=max_iter,
@@ -316,24 +325,30 @@ def relasso_lars_path(X, y, Xy=None, Gram=None, max_iter=500, alpha_min=0,
                                         verbose=verbose,
                                         return_path=True,
                                         return_n_iter=False)
-                sparse_X = X.copy()
+                sparse_X = X.copy(order="F")
                 mask = np.all(np.isclose(coef1[:, -2:].T,
                                          np.zeros((2, nb_features))),
                               axis=0)
                 sparse_X[:, mask] = 0
+                coef2 = None
+                # Set a lower limit to the alpha_reg to speed up computation
+                min_alpha_recompute = alphas[0] * .1
                 for j in range(i+len(alphas_reg_interp), nb_alphas):
-                    sparse_X_copy = sparse_X.copy()
-                    _, _, coef2 = lars_path(sparse_X_copy, y, Xy=Xy,
-                                            Gram=Gram,
-                                            max_iter=max_iter,
-                                            alpha_min=alphas[j],
-                                            method='lasso',
-                                            copy_X=copy_X,
-                                            eps=eps,
-                                            copy_Gram=copy_Gram,
-                                            verbose=verbose,
-                                            return_path=False,
-                                            return_n_iter=False)
+                    # Skip computation for very small values of alpha_reg
+                    if coef2 is None or alphas[j] >= min_alpha_recompute or \
+                       alphas[j] == alpha_reg_min_:
+                        sparse_X_copy = sparse_X.copy(order="F")
+                        _, _, coef2 = lars_path(sparse_X_copy, y, Xy=Xy,
+                                                Gram=Gram,
+                                                max_iter=max_iter,
+                                                alpha_min=alphas[j],
+                                                method='lasso',
+                                                copy_X=copy_X,
+                                                eps=eps,
+                                                copy_Gram=copy_Gram,
+                                                verbose=verbose,
+                                                return_path=False,
+                                                return_n_iter=False)
                     relasso_coefs[:, j, i] = coef2
 
         # Set min value for alpha used for variable selection
@@ -698,7 +713,7 @@ class RelaxedLassoLarsCV(RelaxedLassoLars):
         all the values of alpha along the path for the different folds
         Corresponds to alpha_var, i.e. alphas used for variables selection
 
-    mse_path_ : array, shape (n_folds, n_cv_alphas)
+    mse_path_ : array, shape (n_cv_alphas_reg, n_folds, n_cv_alphas_var)
         the mean square error on left-out for each fold along the path
         (alpha values given by ``cv_alphas``)
 
@@ -784,26 +799,30 @@ class RelaxedLassoLarsCV(RelaxedLassoLars):
         mse_path.fill(np.nan)
 
         for index, (alphas, _, _, residues) in enumerate(cv_paths):
-            alphas_bk, residues_bk = alphas, residues
+            residues = residues[::-1, :, ::-1]
+            alphas = alphas[::-1]
+            alphas_iter = alphas
+            # Set 0 as the very first alphas
+            if alphas[0] != 0:
+                alphas = np.r_[0, alphas]
+                residues = np.concatenate((residues[0, np.newaxis], residues),
+                                          axis=0)
+            # Set the max of all alphas as last value of alphas
+            if alphas[-1] != all_alphas[-1]:
+                alphas = np.r_[alphas, all_alphas[-1]]
+                residues = np.concatenate((residues, residues[np.newaxis, -1]),
+                                          axis=0)
+            # Compute the squared mean of residues
+            residues = np.mean(residues**2, axis=1)
+            # Interpolate residues through all values of alphas
+            residues = interpolate.interp1d(alphas,
+                                            residues,
+                                            axis=0)(all_alphas)
             prev_alpha_var = 0
+
             # Loop throuh alphas that control variables in model (alpha_var)
-            for jndex, alpha_var in enumerate(alphas[:-1][::-1]):
-                alphas, residues = alphas_bk, residues_bk
-                alphas = alphas[::-1]
-                residues = residues[::-1, :, ::-1][:, :, jndex]
-                # Set 0 as the very first alphas
-                if alphas[0] != 0:
-                    alphas = np.r_[0, alphas]
-                    residues = np.r_[residues[0, np.newaxis], residues]
-                # Set the max of all alphas as last value of alphas
-                if alphas[-1] != all_alphas[-1]:
-                    alphas = np.r_[alphas, all_alphas[-1]]
-                    residues = np.r_[residues, residues[-1, np.newaxis]]
-                # Interpolate residues through all values of alphas
-                this_residues = interpolate.interp1d(alphas,
-                                                     residues,
-                                                     axis=0)(all_alphas)
-                this_residues **= 2
+            for jndex, alpha_var in enumerate(alphas_iter[1:]):
+                this_residues = residues[:, jndex]
 
                 # Repeat the residues values for all alphas smaller
                 # than alpha_var values
@@ -811,9 +830,9 @@ class RelaxedLassoLarsCV(RelaxedLassoLars):
                                 (all_alphas[1:] > prev_alpha_var), 1, 0)
                 from_index = np.argmax(mask)
                 nb_index = np.sum(mask)
-                to_index = np.sum(mask) + np.argmax(mask)
+                to_index = from_index + nb_index
                 mse_path[:, index, from_index:to_index] = np.repeat(
-                                np.mean(this_residues, axis=-1)[:, np.newaxis],
+                                this_residues[:, np.newaxis],
                                 nb_index, axis=1)
 
                 # Ensure lower left triangle is np.nan to respect the
@@ -833,9 +852,8 @@ class RelaxedLassoLarsCV(RelaxedLassoLars):
         i_best_alpha_reg = i_best_alpha_reg_[0]
         i_best_alpha_var = i_best_alpha_var_[0]
 
-        best_alpha_reg = all_alphas[i_best_alpha_reg]
-        # Increment alpha_var by 1 as we skip 0 (first value in all_alphas)
-        best_alpha_var = all_alphas[i_best_alpha_var+1]
+        best_alpha_reg = all_alphas[i_best_alpha_reg+1]
+        best_alpha_var = all_alphas[i_best_alpha_var]
         best_theta = best_alpha_reg / best_alpha_var
 
         # Store our parameters
