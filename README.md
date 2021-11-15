@@ -146,6 +146,8 @@ For more, see [examples](./examples).
 See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Contributing
+Main point of contact and current maintainer of this repository at Continental is [Julien Cohen Solal](https://github.com/juliencohensolal).
+
 This implementation was originally written by 
 [Gregory Vial](https://github.com/GregVial)
 and [Flora Estermann](https://github.com/FloWPs).
